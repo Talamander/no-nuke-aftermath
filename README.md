@@ -1,8 +1,28 @@
 # Nuke Aftermath (Nuclear Option, BepInEx 5)
 
-Client-only, visual-only nuclear aftermath: a persistent scorch at ground zero and charred, blown-down trunks where the blast removed trees. Status: **code written and type-checked only. Not installed, not run in the game, not tested.**
+Client-only, visual-only nuclear aftermath: a persistent scorch at ground zero and charred, blown-down trunks where the blast removed trees.
+
+**Status: test build.** It compiles against Nuclear Option 0.34.1 (build `cb745d6c44f1`), but it has not been confirmed working in a real game yet. Please report what happens.
 
 Videogame visual effects only.
+
+## Install (players)
+
+1. Install BepInEx 5 (Windows x64, version 5.4.23 or later 5.4.x) from the official releases page: https://github.com/BepInEx/BepInEx/releases. Extract it into the Nuclear Option game folder (the folder with `NuclearOption.exe`). Start the game once and quit, so BepInEx creates its folders.
+2. Download `NoNukeAftermath-<version>.zip` from this repository's Releases page.
+3. Extract the zip into the same game folder. You should get `BepInEx/plugins/NoNukeAftermath/NoNukeAftermath.dll`.
+4. Start the game. `BepInEx/LogOutput.log` should contain `Nuke Aftermath <version> loaded.`
+
+To remove it, delete the `BepInEx/plugins/NoNukeAftermath` folder.
+
+Only you need it. Other players and the host do not need the mod, and players without it see the stock game. There are no keys: it reacts to nuclear detonations by itself. Settings are in `BepInEx/config/talamander.no.nukeaftermath.cfg` (created on first start).
+
+## What to report when testing
+
+- Detonate a nuclear weapon (10 t or more) on the ground near a forest.
+- Screenshots of ground zero and of the forest edge, a few seconds after the blast and again a minute later.
+- Any frame-rate hitch right after the blast.
+- Your `BepInEx/LogOutput.log`, especially the `Nuclear detonation ...` line and the `Renderer N: ... newly cleared ... changed elsewhere` lines. A large "changed elsewhere" number on a first blast means the trunk placement method does not work.
 
 ## What the stock game already does (code evidence, decompiled 0.34.1 client, build `cb745d6c44f1`)
 
@@ -45,10 +65,7 @@ The mushroom cloud, shockwave and audio are prefabs on each missile's serialized
 ## Build
 
 ```
-dotnet build -c Release                     # against the client install (needs /mnt/games)
-dotnet build -c Release -p:GameManagedDir=$HOME/Games/nuclear-option-server/NuclearOptionServer_Data/Managed
+dotnet build -c Release -p:GameManagedDir="<game folder>/NuclearOption_Data/Managed"
 ```
 
-The second form only type-checks against the dedicated server DLLs (same build hash). BepInEx and HarmonyX come from the official NuGet feed as compile references only.
-
-Do not install into the Steam game, `/mnt/games/no-maptest` or `/mnt/games/no-friendtest` without coordinating first.
+The game's DLLs are compile references only and are not copied or redistributed. BepInEx and HarmonyX come from the official NuGet feed as compile references only; HarmonyX ships with BepInEx 5 at runtime. The dedicated server's `NuclearOptionServer_Data/Managed` folder also works for a type check (same build hash).
