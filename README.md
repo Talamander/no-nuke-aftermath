@@ -1,71 +1,162 @@
-# Nuke Aftermath (Nuclear Option, BepInEx 5)
+<p align="center">
+  <img src="docs/media/cover.jpg" alt="Burnt hills with fallen black tree trunks under a blue sky, with the title Nuke Aftermath" width="100%">
+</p>
 
-Client-only, visual-only nuclear aftermath: a persistent scorch at ground zero and charred, blown-down trunks where the blast removed trees.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/media/logo-dark.png">
+    <img src="docs/media/logo-light.png" alt="Nuke Aftermath" width="420">
+  </picture>
+</p>
 
-**Status: test build.** It compiles against Nuclear Option 0.34.1 (build `cb745d6c44f1`), but it has not been confirmed working in a real game yet. Please report what happens.
+<p align="center">
+  <b>After a nuclear strike in Nuclear Option, the ground stays burnt and the forest lies flat.</b>
+</p>
 
-Videogame visual effects only.
+<p align="center">
+  <img src="docs/media/compare.gif" alt="A wipe between the stock game and Nuke Aftermath, three minutes after the same strike, seen from the same camera: green hills on one side, black burnt hills with fallen trunks on the other" width="960">
+</p>
 
-## Install (players)
+Nuke Aftermath is a free mod for [Nuclear Option](https://store.steampowered.com/app/2168680/). It is
+fan-made and not affiliated with Shockfront Studios.
 
-1. Install BepInEx 5 (Windows x64, version 5.4.23 or later 5.4.x) from the official releases page: https://github.com/BepInEx/BepInEx/releases. Extract it into the Nuclear Option game folder (the folder with `NuclearOption.exe`). Start the game once and quit, so BepInEx creates its folders.
-2. Download `NoNukeAftermath-<version>.zip` from this repository's Releases page.
-3. Extract the zip into the same game folder. You should get `BepInEx/plugins/NoNukeAftermath/NoNukeAftermath.dll`.
-4. Start the game. `BepInEx/LogOutput.log` should contain `Nuke Aftermath <version> loaded.`
+**Status: test build 0.1.0.** Made for Nuclear Option 0.34.1. Tested once, on Linux, on a recorded
+real match played back in the game (see [Before and after](#before-and-after)). Not tested yet on
+Windows, in a live mission or in multiplayer. Please report what you see.
 
-To remove it, delete the `BepInEx/plugins/NoNukeAftermath` folder.
+## What it does
 
-Only you need it. Other players and the host do not need the mod, and players without it see the stock game. There are no keys: it reacts to nuclear detonations by itself. Settings are in `BepInEx/config/talamander.no.nukeaftermath.cfg` (created on first start).
+- **A scorch that fits the blast.** The stock game leaves a small dark mark at ground zero. Nuke
+  Aftermath burns most of the area the blast cleared of trees, about 1.3 km across for a 1.5 kt bomb.
+- **Fallen trees.** Where the blast wiped out the forest, you now see charred trunks lying on the
+  ground, with a few bare trunks still standing near the edge.
+- **It stays.** The scorch and the trunks are made to stay until you leave the map. The test checked
+  them after three minutes.
+- **Nothing to set up.** There are no keys. It reacts to every nuclear warhead by itself.
+- **Only for you.** It changes what your game draws, nothing else. Other players do not need it, and
+  it cannot change the outcome of a match.
 
-## What to report when testing
+## Before and after
 
-- Detonate a nuclear weapon (10 t or more) on the ground near a forest.
-- Screenshots of ground zero and of the forest edge, a few seconds after the blast and again a minute later.
-- Any frame-rate hitch right after the blast.
-- Your `BepInEx/LogOutput.log`, especially the `Nuclear detonation ...` line and the `Renderer N: ... newly cleared ... changed elsewhere` lines. A large "changed elsewhere" number on a first blast means the trunk placement method does not work.
+The same strike, filmed twice from the same cameras: once in the stock game and once with Nuke
+Aftermath. It is a 1.5 kt nuclear bomb from a real recorded match, about 150 m above a forested valley.
+Both sides have the same colour grade. Only the labels are added.
 
-## What the stock game already does (code evidence, decompiled 0.34.1 client, build `cb745d6c44f1`)
+### Three minutes after the strike
 
-- Detonation reaches every client. The server calls `Missile.Detonate`, which sends the `[ClientRpc] RpcDetonate`. Its body `Missile.UserCode_RpcDetonate_897349600` runs on every observer and on the host, and calls `Missile.Warhead.Detonate`, which spawns the effect prefab locally.
-- `Shockwave.Start` (all clients) sets `blastRadius = (yieldKg)^(1/3) * 13`. It puts down a dust/shockwave ground decal that always fades and is destroyed about 10 s after the front passes. Above 10 t TNT it calls `BlastManager.AddBlast(pos, blastRadius / 2)`.
-- Trees are GPU-only (`TreeRenderer`, `Graphics.RenderMeshIndirect`, no GameObjects or colliders). `DetailRenderer.LateUpdate` drains the blasts. It paints a coarse map-wide blast texture (`_Global_BlastMap`, about 160 m per texel) and dispatches the `clearShader` that removes trees within `0.5 * blastRadius`. The tree shader also tints trees toward `_BlastColor` from that blast map.
-- Gameplay damage is server-only (`Shockwave.InfluencedObject.HasShockwaveReached` checks `Server.Active`). Trees carry no gameplay state, so changing tree visuals cannot desync anything. Buildings are server-authoritative; this mod does not touch them.
-- None of this is replicated. A player who joins after a blast sees no blast map and a full forest.
+| Stock game | Nuke Aftermath |
+|---|---|
+| <img src="docs/media/compare-near-stock.jpg" alt="Stock game: green hills with a small dark patch and a smoke column"> | <img src="docs/media/compare-near-mod.jpg" alt="Nuke Aftermath: the same hills burnt black, with fallen trunks"> |
+| A small dark patch where the bomb went off. | The whole valley is burnt, with fallen trunks in front. |
+| <img src="docs/media/compare-wide-stock.jpg" alt="Stock game: wide aerial view with a small dark mark"> | <img src="docs/media/compare-wide-mod.jpg" alt="Nuke Aftermath: wide aerial view with a large burnt area"> |
+| From about 1.9 km away. | The burn is easy to see from the air. |
+| <img src="docs/media/compare-top-stock.jpg" alt="Stock game: top-down view with a small scorch"> | <img src="docs/media/compare-top-mod.jpg" alt="Nuke Aftermath: top-down view with a much larger scorch"> |
+| From above: the stock scorch. | A bigger, darker burn. The trees outside the blast stay green. |
 
-## What this mod adds
+<p align="center">
+  <img src="docs/media/compare-top.gif" alt="A wipe between the stock game and Nuke Aftermath, seen from above" width="720">
+</p>
 
-1. **Scorch**: one `DecalProjector` from the game's own `GameAssets.scorchMarkDecal` prefab at the ground point under the blast, radius `0.45 * blastRadius`, draw distance 30 km. It is not handed to `EffectManager`, which keeps only 20 effects, so it lasts until the map unloads. Like the stock shockwave decal, it is skipped for an airburst higher than half the blast radius.
-2. **Charred trunks**: six frames after the blast, one `AsyncGPUReadback` of each `TreeRenderer.treePositionBuffer`. Positions that changed near ground zero, compared with `PositionData`, are exactly the trees the stock clear removed. For each one it draws 7 procedural charcoal trunks. Inside 55 % of the clear radius they lie flat, pointing away from ground zero; further out they stand as leaning snags. The trunks are merged into one mesh per 512 m cell, with no colliders. Placement is seeded per tree, so every client with the mod draws the same trunks.
-3. Session reset on `DetailRenderer.Start` (new map or mission). All objects are children of `Datum.origin`, so they follow the floating origin.
+### Thirty seconds after the strike
 
-Stock maps and TerrainLab maps (Ironjaw Sound) use the same path: TerrainLabNOPatch keeps a cloned stock `TreeRenderer` with the stock `clearShader`, and only swaps `PositionData`, mesh and look.
+| Stock game | Nuke Aftermath |
+|---|---|
+| <img src="docs/media/compare-near-30s-stock.jpg" alt="Stock game: smoke over green hills"> | <img src="docs/media/compare-near-30s-mod.jpg" alt="Nuke Aftermath: smoke over burnt hills with fallen trunks"> |
 
-## Client/server requirements
+### The blast itself
 
-- Each player who wants the visuals installs it. Players without it see stock visuals, with no desync risk. A dedicated server needs nothing (`DetailRenderer` is off when headless, and the plugin returns early).
-- Late joiners would need the host to remember and send past detonations. That needs an optional host-side companion plus a client message, and every client would have to install it. Not built.
+The explosion is the stock one. Nuke Aftermath only changes what is left behind.
 
-## Performance estimate (not measured)
+| Stock game | Nuke Aftermath |
+|---|---|
+| <img src="docs/media/compare-wide-blast-stock.jpg" alt="Stock game: the fireball and shockwave"> | <img src="docs/media/compare-wide-blast-mod.jpg" alt="Nuke Aftermath: the same fireball and shockwave"> |
 
-- A 10 kt blast: blast radius about 2,800 m, tree clear radius about 1,400 m, about 6 km². At Ironjaw density (about 1,000 clumps per km²) that is about 6,000 clumps, 42,000 trunks and 420k triangles in about 40 cell meshes, built once on the main thread. `MaxCharredClumps` caps the total at 40,000 clumps.
-- One 7 MB GPU readback per blast per tree renderer.
-- One large decal. URP decal cost scales with screen coverage.
+### Up close
 
-## Unknowns that need one controlled game test
+| | |
+|---|---|
+| <img src="docs/media/still-trunks.jpg" alt="Charred trunks lying on burnt ground"> | <img src="docs/media/still-ground-zero.jpg" alt="Burnt ground at ground zero with fallen trunks"> |
+| Fallen trunks, about 200 m from ground zero. | Ground zero, three minutes later. |
 
-- Whether the `clearShader` edits positions in place, which the diff relies on, or compacts the buffer. The log line `changed elsewhere` shows it: a large number means compaction, and the trunk placement would be wrong.
-- The look of the stock scorch material stretched to kilometres. A dedicated original decal texture may be needed.
-- Whether URP Lit without instancing is in the build. Likely, because stock materials use it; the plugin logs a fallback otherwise.
-- Which URP decal technique is active, and how the decal reads on steep relief.
+## Install
 
-## Explosion visuals (next step, not started)
+You need Nuclear Option from Steam.
 
-The mushroom cloud, shockwave and audio are prefabs on each missile's serialized `Warhead` fields, all local. Better explosion visuals need original particle assets: a lingering stem and cloud, a ground dust ring, ground fires and smoke over the scorch. Those need a Unity batch-mode bundle. The Unity lock (`terrainlab-unity.lock`) is shared with the maps work, so this waits until after the V9/Escalation release.
+1. Install [BepInEx 5](https://github.com/BepInEx/BepInEx/releases) (the x64 version for Windows)
+   into your Nuclear Option folder, if it is not there yet. BepInEx is the mod loader most Nuclear
+   Option mods use. On Linux, also set this Steam launch option for the game:
+   `WINEDLLOVERRIDES="winhttp=n,b" %command%`
+2. Download `NoNukeAftermath-<version>.zip` from
+   [Releases](https://github.com/Talamander/no-nuke-aftermath/releases).
+3. Unzip it into your Nuclear Option folder (the folder with `NuclearOption.exe`). You should now have
+   `BepInEx/plugins/NoNukeAftermath/NoNukeAftermath.dll`.
+4. Start the game and play a mission with a nuclear weapon.
 
-## Build
+To check that it loaded, open `BepInEx/LogOutput.log` in your Nuclear Option folder. It should have the
+line `Nuke Aftermath 0.1.0 loaded.`
 
-```
-dotnet build -c Release -p:GameManagedDir="<game folder>/NuclearOption_Data/Managed"
-```
+If you already use other BepInEx mods, they keep working. Nuke Aftermath only adds its own folder.
 
-The game's DLLs are compile references only and are not copied or redistributed. BepInEx and HarmonyX come from the official NuGet feed as compile references only; HarmonyX ships with BepInEx 5 at runtime. The dedicated server's `NuclearOptionServer_Data/Managed` folder also works for a type check (same build hash).
+To find your Nuclear Option folder: in Steam, right-click Nuclear Option, then **Manage**, then
+**Browse local files**.
+
+## Uninstall
+
+Close the game first.
+
+- The mod: delete `BepInEx/plugins/NoNukeAftermath` in your game folder.
+- Its settings: delete `BepInEx/config/talamander.no.nukeaftermath.cfg`.
+- The mod loader: if no other mod uses BepInEx, also delete `BepInEx`, `winhttp.dll`,
+  `doorstop_config.ini`, `.doorstop_version` and `changelog.txt` from the game folder.
+
+## Questions and limits
+
+**Do other players need it?**
+No. Each player who wants to see the aftermath installs it. Players without it see the stock game.
+The host and dedicated servers need nothing.
+
+**Does it work in multiplayer?**
+It should, because it only changes what your own game draws, and it reacts to the same explosion
+every player sees. It has not been tested in multiplayer yet.
+
+**Can it get me out of sync or change the match?**
+No. Trees in Nuclear Option have no effect on the game, and the mod does not touch buildings, units or
+damage. It only adds things to look at.
+
+**What about performance?**
+The trunks are built once, a few frames after the blast, and drawn as a handful of simple meshes. In
+the test (58 tree clumps cleared) there was no visible stutter, but frame time was not measured. Very
+large blasts over dense forest make more trunks; there is a cap.
+
+**I joined a match after a nuke went off. Why is there no scorch?**
+The mod only knows about explosions it saw. The stock game is the same: a player who joins late also
+sees a full forest.
+
+**Can I change it?**
+Yes, in `BepInEx/config/talamander.no.nukeaftermath.cfg` (it appears after the first start). You can
+turn the scorch or the trunks off, change the scorch size, and change how many trunks each lost tree
+leaves.
+
+**Something does not work.**
+Open an issue on [GitHub](https://github.com/Talamander/no-nuke-aftermath/issues). Say what you did and
+what went wrong, and attach `BepInEx/LogOutput.log` from your Nuclear Option folder. Attach it right
+after the problem, before you start the game again, because the game rewrites it on every start.
+
+## More mods
+
+- [Nuclear Replay](https://github.com/Talamander/nuclear-replay): record your matches and watch them
+  back from any angle. The comparison above was filmed with it.
+- [Missile Cam](https://github.com/Talamander/no-missile-cam): follow your own missiles in flight with the
+  camera, and look at your selected target.
+
+## Credits and license
+
+Made by Talamander. Nuke Aftermath is a fan-made mod. It is not made, supported or endorsed by
+Shockfront Studios, the makers of Nuclear Option.
+
+Nuke Aftermath is released under the [MIT license](LICENSE). It uses the game's own scorch material and
+needs BepInEx, which keeps its own license.
+
+## For developers
+
+How it works, the test log and how to build it are in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
