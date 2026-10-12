@@ -10,73 +10,90 @@
 </p>
 
 <p align="center">
-  <b>After a nuclear strike in Nuclear Option, the ground stays burnt and the forest lies flat.</b>
+  <b>Nuclear strikes in Nuclear Option get a far bigger blast, and they leave burnt ground, fallen forest and fires behind.</b>
 </p>
 
 <p align="center">
-  <img src="docs/media/compare.gif" alt="A wipe between the stock game and Nuke Aftermath, three minutes after the same strike, seen from the same camera: green hills on one side, black burnt hills with fallen trunks on the other" width="960">
+  <img src="docs/media/compare.gif" alt="A wipe between the stock game and Nuke Aftermath, three minutes after the same strike, from the same camera: green hills on one side, black burnt ground with fires and smoke columns on the other" width="960">
 </p>
 
 Nuke Aftermath is a free mod for [Nuclear Option](https://store.steampowered.com/app/2168680/). It is
 fan-made and not affiliated with Shockfront Studios.
 
-**Status: test build 0.1.0.** Made for Nuclear Option 0.34.1. Tested once, on Linux, on a recorded
-real match played back in the game (see [Before and after](#before-and-after)). Not tested yet on
-Windows, in a live mission or in multiplayer. Please report what you see.
+**Status: test build 0.2.0.** Made for Nuclear Option 0.34.1. Tested on Linux only, in an offline
+Escalation mission on a stock map, with a 1.5 kt bomb (see [Before and after](#before-and-after)). Not
+tested yet on Windows, in VR, in multiplayer, at night or with the bigger 20 kt and 250 kt warheads.
+Please report what you see.
 
 ## What it does
 
-- **A scorch that fits the blast.** The stock game leaves a small dark mark at ground zero. Nuke
-  Aftermath burns most of the area the blast cleared of trees, about 1.3 km across for a 1.5 kt bomb.
-- **Fallen trees.** Where the blast wiped out the forest, you now see charred trunks lying on the
-  ground, with a few bare trunks still standing near the edge.
-- **It stays.** The scorch and the trunks are made to stay until you leave the map. The test checked
-  them after three minutes.
-- **Nothing to set up.** There are no keys. It reacts to every nuclear warhead by itself.
-- **Only for you.** It changes what your game draws, nothing else. Other players do not need it, and
-  it cannot change the outcome of a match.
+**The blast**
+
+- **A bigger, longer explosion.** The game's own fireball, mushroom cloud, stem and base cloud are
+  made about 1.6 times bigger and last about 1.6 times longer.
+- **A real flash.** A brighter, longer flash, a short white-out of the screen when you look at it, and
+  a light pulse that lights up the ground and the clouds around the blast.
+- **A dust ring.** A wall of dust races out along the ground from ground zero, then hangs and thins out.
+- **A condensation ring.** A thin white ring of vapour spreads out from the fireball in the first seconds.
+- **The camera shakes** when the shock wave reaches you in the cockpit. It is off in VR.
+
+**What is left behind**
+
+- **A large burn.** About 2 km across for a 1.5 kt bomb, with a black centre, a charred ring with
+  streaks pointing away from the blast, grey ash and a ragged, soft edge.
+- **A flattened forest.** The blast clears trees further out than in the stock game. Where it
+  cleared them, charred trunks lie on the ground pointing away from ground zero. Near the edge, burnt
+  trunks still stand, many of them snapped off.
+- **Fires and smoke for minutes.** Lines of fire burn across the cleared area for up to 6 minutes, each
+  with its own column of dark smoke drifting with the wind. A tall smoke column rises from ground zero,
+  embers drift over the burnt ground, and what is left of the mushroom cloud drifts away slowly.
+- **It stays.** The burn and the trunks stay until you leave the map.
+
+**Nothing to set up.** There are no keys. It reacts to every nuclear warhead by itself.
+**Only for you.** It changes what your game draws, nothing else. Other players do not need it, and it
+cannot change damage, units or the outcome of a match.
 
 ## Before and after
 
-The same strike, filmed twice from the same cameras: once in the stock game and once with Nuke
-Aftermath. It is a 1.5 kt nuclear bomb from a real recorded match, about 150 m above a forested valley.
-Both sides have the same colour grade. Only the labels are added.
+The same 1.5 kt strike in the same offline Escalation mission on a stock map, filmed twice from the
+same cameras at the same times after the blast: once in the stock game and once with Nuke Aftermath.
+The bomb went off about 150 m above a forest. Both sides of every pair have the same colour grade with
+the same numbers; only the labels are added. The sky differs a little between the two runs because the
+weather clouds are not the same each time.
 
-### Three minutes after the strike
+### The blast, 2.5 seconds in
 
 | Stock game | Nuke Aftermath |
 |---|---|
-| <img src="docs/media/compare-near-stock.jpg" alt="Stock game: green hills with a small dark patch and a smoke column"> | <img src="docs/media/compare-near-mod.jpg" alt="Nuke Aftermath: the same hills burnt black, with fallen trunks"> |
-| A small dark patch where the bomb went off. | The whole valley is burnt, with fallen trunks in front. |
-| <img src="docs/media/compare-wide-stock.jpg" alt="Stock game: wide aerial view with a small dark mark"> | <img src="docs/media/compare-wide-mod.jpg" alt="Nuke Aftermath: wide aerial view with a large burnt area"> |
-| From about 1.9 km away. | The burn is easy to see from the air. |
-| <img src="docs/media/compare-top-stock.jpg" alt="Stock game: top-down view with a small scorch"> | <img src="docs/media/compare-top-mod.jpg" alt="Nuke Aftermath: top-down view with a much larger scorch"> |
-| From above: the stock scorch. | A bigger, darker burn. The trees outside the blast stay green. |
+| <img src="docs/media/compare-blast-wide-stock.jpg" alt="Stock game: a small fireball over a translucent shockwave disc"> | <img src="docs/media/compare-blast-wide-mod.jpg" alt="Nuke Aftermath: a much bigger fireball with a dust wall and a ring of vapour"> |
+| From about 1.9 km away. | A bigger fireball, the dust ring and the condensation ring. |
+| <img src="docs/media/compare-blast-near-stock.jpg" alt="Stock game: the fireball seen from the ground"> | <img src="docs/media/compare-blast-near-mod.jpg" alt="Nuke Aftermath: the fireball seen from the ground, the ground lit orange by the flash"> |
+| From the ground, about 500 m away. | The flash lights the ground orange. |
 
 <p align="center">
-  <img src="docs/media/compare-top.gif" alt="A wipe between the stock game and Nuke Aftermath, seen from above" width="720">
+  <img src="docs/media/compare-blast.gif" alt="A wipe between the stock game and Nuke Aftermath 2.5 seconds after the strike" width="720">
 </p>
 
-### Thirty seconds after the strike
+### Thirty seconds after
 
 | Stock game | Nuke Aftermath |
 |---|---|
-| <img src="docs/media/compare-near-30s-stock.jpg" alt="Stock game: smoke over green hills"> | <img src="docs/media/compare-near-30s-mod.jpg" alt="Nuke Aftermath: smoke over burnt hills with fallen trunks"> |
+| <img src="docs/media/compare-30s-wide-stock.jpg" alt="Stock game: a small dark cloud at the base of the stem over green forest"> | <img src="docs/media/compare-30s-wide-mod.jpg" alt="Nuke Aftermath: fires and dark smoke over a large black burn"> |
+| <img src="docs/media/compare-30s-forest-stock.jpg" alt="Stock game: green forest beyond the blast, with some smoke"> | <img src="docs/media/compare-30s-forest-mod.jpg" alt="Nuke Aftermath: the same forest flattened and burnt, with smoke"> |
+| A forest about 850 m from ground zero. In the stock game the blast does not reach it. | The same forest, blown flat and burnt. |
 
-### The blast itself
-
-The explosion is the stock one. Nuke Aftermath only changes what is left behind.
+### Three minutes after
 
 | Stock game | Nuke Aftermath |
 |---|---|
-| <img src="docs/media/compare-wide-blast-stock.jpg" alt="Stock game: the fireball and shockwave"> | <img src="docs/media/compare-wide-blast-mod.jpg" alt="Nuke Aftermath: the same fireball and shockwave"> |
-
-### Up close
-
-| | |
-|---|---|
-| <img src="docs/media/still-trunks.jpg" alt="Charred trunks lying on burnt ground"> | <img src="docs/media/still-ground-zero.jpg" alt="Burnt ground at ground zero with fallen trunks"> |
-| Fallen trunks, about 200 m from ground zero. | Ground zero, three minutes later. |
+| <img src="docs/media/compare-3min-near-stock.jpg" alt="Stock game: green hills with a small dark patch"> | <img src="docs/media/compare-3min-near-mod.jpg" alt="Nuke Aftermath: black burnt ground with lines of fire and columns of smoke"> |
+| From the ground. The stock blast has left a small dark patch. | Burnt ground, fires and smoke. |
+| <img src="docs/media/compare-3min-wide-stock.jpg" alt="Stock game: wide aerial view with a small cleared patch in the forest"> | <img src="docs/media/compare-3min-wide-mod.jpg" alt="Nuke Aftermath: wide aerial view with smoke columns rising from a large burnt area"> |
+| From about 1.9 km away. | Easy to see from the air. |
+| <img src="docs/media/compare-3min-top-stock.jpg" alt="Stock game: top-down view of the forest with a small cleared patch"> | <img src="docs/media/compare-3min-top-mod.jpg" alt="Nuke Aftermath: top-down view with smoke drifting over the burnt area"> |
+| <img src="docs/media/compare-3min-forest-stock.jpg" alt="Stock game: the forest beyond the blast, untouched"> | <img src="docs/media/compare-3min-forest-mod.jpg" alt="Nuke Aftermath: the flattened forest with trunks pointing away from the blast"> |
+| <img src="docs/media/compare-3min-cloud-stock.jpg" alt="Stock game: an empty sky, the mushroom cloud is gone"> | <img src="docs/media/compare-3min-cloud-mod.jpg" alt="Nuke Aftermath: the remains of the mushroom cloud above smoke columns"> |
+| From 3.4 km away. After three minutes the stock cloud is gone. | The cloud still hangs over the fires. |
 
 ## Install
 
@@ -93,7 +110,7 @@ You need Nuclear Option from Steam.
 4. Start the game and play a mission with a nuclear weapon.
 
 To check that it loaded, open `BepInEx/LogOutput.log` in your Nuclear Option folder. It should have the
-line `Nuke Aftermath 0.1.0 loaded.`
+line `Nuke Aftermath 0.2.0 loaded.`
 
 If you already use other BepInEx mods, they keep working. Nuke Aftermath only adds its own folder.
 
@@ -120,22 +137,32 @@ It should, because it only changes what your own game draws, and it reacts to th
 every player sees. It has not been tested in multiplayer yet.
 
 **Can it get me out of sync or change the match?**
-No. Trees in Nuclear Option have no effect on the game, and the mod does not touch buildings, units or
-damage. It only adds things to look at.
+No. Trees in Nuclear Option have no effect on the game, and the mod does not touch buildings, units,
+damage or the shock wave. The trees it clears further out are only cleared in your own game. It only
+adds things to look at.
 
 **What about performance?**
-The trunks are built once, a few frames after the blast, and drawn as a handful of simple meshes. In
-the test (58 tree clumps cleared) there was no visible stutter, but frame time was not measured. Very
-large blasts over dense forest make more trunks; there is a cap.
+It was measured on one PC (Linux, RTX 5090, 1080p, no frame cap), with the same mission, camera and
+1.5 kt nuke with and without the mod. In normal play the mod made no difference you could measure:
+average frame time stayed between 3.6 and 4.1 ms (about 250 fps) before, during and after the blast,
+the same as the stock game within the run-to-run noise. The one cost is the moment of the blast: the
+frame the bomb goes off took about 52 to 58 ms with the mod, against about 30 to 33 ms in the stock
+game, so there is one slightly bigger hitch. Slower GPUs, very large blasts and standing inside the
+smoke will cost more; that has not been measured. If it is too heavy, lower `ParticleBudget` or
+`MaxActiveBlasts` in the settings, or turn off the effects you do not need.
 
-**I joined a match after a nuke went off. Why is there no scorch?**
+**I joined a match after a nuke went off. Why is there no burn?**
 The mod only knows about explosions it saw. The stock game is the same: a player who joins late also
 sees a full forest.
 
 **Can I change it?**
-Yes, in `BepInEx/config/talamander.no.nukeaftermath.cfg` (it appears after the first start). You can
-turn the scorch or the trunks off, change the scorch size, and change how many trunks each lost tree
-leaves.
+Yes, in `BepInEx/config/talamander.no.nukeaftermath.cfg` (it appears after the first start). Every
+effect has its own on/off switch: the bigger cloud, the flash, the screen flash, the dust ring, the
+condensation ring, the lingering cloud, the camera shake, the burn, the extra tree clearing, the
+trunks, the fires, the smoke column and the embers. You can also change the cloud size and how long it
+lasts, the flash brightness, the shake strength, the burn size, how many trunks and fires there are,
+and how long the fires burn. Under `Performance`, `ParticleBudget` scales every particle effect down
+(0.5 = half) and `MaxActiveBlasts` limits how many blasts keep their particle effects at the same time.
 
 **Something does not work.**
 Open an issue on [GitHub](https://github.com/Talamander/no-nuke-aftermath/issues). Say what you did and
@@ -145,7 +172,7 @@ after the problem, before you start the game again, because the game rewrites it
 ## More mods
 
 - [Nuclear Replay](https://github.com/Talamander/nuclear-replay): record your matches and watch them
-  back from any angle. The comparison above was filmed with it.
+  back from any angle.
 - [Missile Cam](https://github.com/Talamander/no-missile-cam): follow your own missiles in flight with the
   camera, and look at your selected target.
 
@@ -154,7 +181,8 @@ after the problem, before you start the game again, because the game rewrites it
 Made by Talamander. Nuke Aftermath is a fan-made mod. It is not made, supported or endorsed by
 Shockfront Studios, the makers of Nuclear Option.
 
-Nuke Aftermath is released under the [MIT license](LICENSE). It uses the game's own scorch material and
+Nuke Aftermath is released under the [MIT license](LICENSE). At runtime it reuses the game's own
+scorch decal and smoke, fire and steam materials; nothing from the game is copied into the mod. It
 needs BepInEx, which keeps its own license.
 
 ## For developers

@@ -11,13 +11,85 @@ How the mod works, what it builds on in the stock game, and how it was tested. T
 - Gameplay damage is server-only (`Shockwave.InfluencedObject.HasShockwaveReached` checks `Server.Active`). Trees carry no gameplay state, so changing tree visuals cannot desync anything. Buildings are server-authoritative; this mod does not touch them.
 - None of this is replicated. A player who joins after a blast sees no blast map and a full forest.
 
-## What this mod adds
+## What this mod adds (0.2.0)
 
-1. **Scorch**: one `DecalProjector` from the game's own `GameAssets.scorchMarkDecal` prefab at the ground point under the blast, radius `0.45 * blastRadius`, draw distance 30 km. It is not handed to `EffectManager`, which keeps only 20 effects, so it lasts until the map unloads. Like the stock shockwave decal, it is skipped for an airburst higher than half the blast radius.
-2. **Charred trunks**: six frames after the blast, one `AsyncGPUReadback` of each `TreeRenderer.treePositionBuffer`. Positions that changed near ground zero, compared with `PositionData`, are exactly the trees the stock clear removed. For each one it draws 7 procedural charcoal trunks. Inside 55 % of the clear radius they lie flat, pointing away from ground zero; further out they stand as leaning snags. The trunks are merged into one mesh per 512 m cell, with no colliders. Placement is seeded per tree, so every client with the mod draws the same trunks.
-3. Session reset on `DetailRenderer.Start` (new map or mission). All objects are children of `Datum.origin`, so they follow the floating origin.
+Everything hangs off one Harmony postfix on `Missile.UserCode_RpcDetonate_897349600` (armed, yield at or
+above `MinYieldKg`), so it runs on every client that has the mod and sees the detonation. By then
+`Warhead.Detonate` has already instantiated the stock effect prefab (`explosion_1kt` for 1.5 kt) under
+`Datum.origin`, but its `MushroomCloud.Start` has not run yet, so a cloud with `blastScale == 0` is the
+fresh one. All objects are children of `Datum.origin` and follow the floating origin. Particle systems
+use custom simulation space on `Datum.origin`, so emit positions are in global (map) coordinates.
 
-Stock maps and TerrainLab maps (Ironjaw Sound) use the same path: TerrainLabNOPatch keeps a cloned stock `TreeRenderer` with the stock `clearShader`, and only swaps `PositionData`, mesh and look.
+### Stock blast tweaks (`StockBlastTweaks.cs`)
+
+On the fresh `MushroomCloud`, before its `Start`, through Traverse:
+
+- `yield` times `CloudScale`^3, which the cloud uses for its own scale.
+- Cloud: `horizontalSizeOverTime` times the scale, rise rate times its square root, particle rate times 1.6.
+- Fireball: size and emission curves replaced: it grows to `CloudScale` times the stock end size and
+  keeps emitting until 1.4 s.
+- Base cloud radius, stem size and rates scaled up; lens flare values and times doubled.
+- `TimedDeletion.deleteDelay` (read in `Start`) times `CloudLifetimeScale`: 300 s to 480 s.
+- `LightAnimation`: 1.8 times the intensity, curve times stretched 2.2 times.
+
+A postfix on `MushroomCloud.Start` stretches the timelines of the cloud and stem by `CloudLifetimeScale`
+(their `lifetime` fields and the systems' `main.duration`). The base cloud keeps its stock lifetime:
+stretched, it lay on the terrain as a flat grey sheet for minutes. The base cloud and stem renderers get
+per-instance materials with a 150 m soft-particle fade for the same reason.
+
+### Runtime-built effects (`BlastFx.cs`, `GroundFires.cs`, `Fx.cs`)
+
+No asset bundle. Every effect is a `ParticleSystem` built in code with a clone of a stock particle
+material found by name among loaded materials (`smoke_background`, `smoke_midground_turbulent`, `steam`,
+`fire_small1`, `sparks`). The clones are made once per session (`Fx.Prewarm`). Smoke clones get a 60 m
+soft-particle fade and a 20 to 180 m camera fade. The systems are built one per frame after the blast
+frame. Particles are emitted by script (`ParticleSystem.Emit(EmitParams)`). Note: with a
+size-over-lifetime curve that ends at 1, `EmitParams.startSize` is the final size; tuning against that
+fixed an early "popcorn" look of small separate puffs.
+
+- **Flash**: a point light 0.25 R above the burst, range 9 R, peak `2.5e7 * FlashBrightness * (R/1487)^2`,
+  a sharp rise then a fast and a slow decay, white to orange over 4 s, gone after 14 s. Screen flash:
+  `OnGUI` full-screen white quad, strength from distance and view direction, under half a second; off in VR.
+- **Dust ring (base surge)**: 1,000 tan particles from 0.08 to 0.2 R at ground level, 130 to 210 m/s
+  outward with drag, 170 to 300 m, 20 to 32 s life; plus a billowing skirt for 7 s.
+- **Condensation ring**: 1,400 translucent steam particles at 0.45 s, 120 to 340 m/s outward with
+  heavy drag, 1.8 to 3.4 s life.
+- **Lingering cloud**: from 22 s, large soft puffs at the cap drift with the wind (`Fx.Wind`) and fade
+  over `LingeringCloudMinutes`; from 30 s, the same for the upper stem.
+- **Camera shake**: `CameraStateManager.ShakeCamera` when `340 m/s * t` reaches the camera, scaled by
+  distance, for 3 s. It only acts in the cockpit view. Off in VR (XR device active, or a VR plugin loaded).
+- **Fires** (after the tree readback): up to `MaxFires` plus a third more on open ground, spread over
+  angular sectors of the cleared clumps. Each fire is a ragged line about 90 m long across the blast
+  direction: small dimmed `fire_small1` flames, one dense plume of dark smoke drifting with the wind,
+  burning 55 to 100 % of `FireMinutes`. A smoke column rises from ground zero from 20 s. Embers drift
+  over the cleared area for 3 minutes.
+
+### Aftermath (`BurnDecal.cs`, `TrunkMeshBuilder.cs`, `Plugin.cs`)
+
+1. **Burn**: the game's `GameAssets.scorchMarkDecal` prefab (a URP `DecalProjector`, "crater" shader
+   graph), with its `crater_b` texture swapped for a 1024x1024 procedural burn generated at session
+   start (about 0.7 s): black core, charred ring with radial streaks, ash patches, singed edge, ragged
+   feathered alpha. `crater_n` is swapped for a flat normal map. Radius `BurnRadiusFactor * R` (1,041 m
+   for 1.5 kt), random spin, draw distance 30 km. Not handed to `EffectManager`, so it lasts until the
+   map unloads.
+2. **Extra tree clearing**: one more `BlastManager.AddBlast(global, TreeClearFactor * R)`, visual
+   only: it clears trees to 1,116 m instead of 744 m. The shock wave and damage are untouched.
+3. **Charred trunks**: 10 frames after the blast, one `AsyncGPUReadback` of each
+   `TreeRenderer.treePositionBuffer`. Positions that changed near ground zero, compared with
+   `PositionData`, are the cleared trees. Each cleared clump gets `TrunksPerClump` (16) procedural
+   trunks dropped onto the ground with a raycast. Inside `FlattenFraction` of the clear radius they lie
+   flat pointing away from ground zero, some broken in two; further out more and more stand as leaning
+   snags, many snapped, with branch stubs. A four-tone bark atlas (charcoal, black-brown, grey ash,
+   scorched bark) on URP Lit. One mesh per 512 m cell, built one cell per frame, no colliders, seeded per
+   tree so every client draws the same trunks.
+4. Session reset on `DetailRenderer.Start` (new map or mission).
+
+### Plugin lifetime fix
+
+BepInEx 5 adds plugins to its manager object. With `HideManagerGameObject = false` (the default), the
+game's scene loads destroyed that object and the plugin with it, so 0.1.0 only worked next to a plugin
+that hid the manager (Nuclear Replay does). 0.2.0 sets `HideAndDontSave` on its own GameObject in `Awake`
+unless it is already `DontSave`.
 
 ## Client/server requirements
 
@@ -26,7 +98,80 @@ Stock maps and TerrainLab maps (Ironjaw Sound) use the same path: TerrainLabNOPa
 
 ## Test log
 
-### 2026-10-12, first in-game test (Linux, Proton, Nuclear Option 0.34.1, build `cb745d6c44f1`)
+### 2026-10-12, 0.2.0 live A/B test (Linux, Proton, Nuclear Option 0.34.1, build `cb745d6c44f1`)
+
+Method change from 0.1.0: the replay viewer needs Steam running, so 0.2.0 was tested in a live offline
+mission instead. A separate, headless copy of the game hosted the built-in Escalation mission (stock
+Heartland map) offline. A test-only BepInEx plugin (never shipped) picked the densest forest as ground
+zero, Global(14988.2, 155.6, 17453.9), dropped a 1.5 kt GPO-N 150 m above it, paused and resumed the
+game, and locked the camera to fixed poses relative to ground zero. The same script ran twice: once
+without the mod (stock) and once with it, so both runs show the same moment from the same cameras:
+before the blast, +2.5 s, +30 s and +3 min, from wide (about 1.9 km), near (about 0.5 km, inside the
+burn), top, forest-edge and cloud (about 3.4 km) cameras. Stills used one colour grade with the same
+numbers on both sides; the video is ungraded on both sides.
+
+Standalone proof: only two plugins were loaded (the test plugin and Nuke Aftermath; no Nuclear Replay),
+with `HideManagerGameObject = false` in `BepInEx.cfg`. Log lines from the final build
+(`BepInEx/LogOutput.log`; the test plugin's lines are marked "dev harness"):
+
+```
+[Info   :Nuke Aftermath] Nuke Aftermath 0.2.0 loaded.
+[Info   :Nuke Aftermath] Burn texture generated in 664 ms.
+[Info   :Nuke Aftermath] Effect materials ready: 5 of 5 stock materials found.
+[Info   :Nuke Aftermath] Nuke Aftermath 0.2.0: new map session, plugin alive.
+[Info   :Nuke Aftermath dev harness (test only)] NA live: mission running after 2.74 s; Nuke Aftermath instance ALIVE, manager object 'BepInEx_Manager' hideFlags HideAndDontSave
+[Info   :Nuke Aftermath] Nuclear detonation 1500.0 t at Global(14988.2,302.1,17453.9); blast radius 1487 m, tree clear radius 1116 m (stock 744 m). Blast 1 this session.
+[Info   :Nuke Aftermath] Stock cloud: size x1.60, lifetime x1.60, deletion 300 s -> 480 s.
+[Info   :Nuke Aftermath] Burn: radius 1041 m.
+[Info   :Nuke Aftermath] Blast frame work: 11.9 ms.
+[Info   :Nuke Aftermath] Renderer 0: 549864 trees, 622 newly cleared near ground zero, 0 changed elsewhere.
+[Info   :Nuke Aftermath] Ground fires: 18 fires for 6.0 min, smoke column, embers.
+[Info   :Nuke Aftermath] Charred trees: 622 clumps, 16 trunks each.
+[Info   :Nuke Aftermath dev harness (test only)] NA live: phase nuked; Nuke Aftermath instance ALIVE, manager object 'BepInEx_Manager' hideFlags HideAndDontSave; scene GameWorld
+```
+
+No warnings or exceptions from the plugin.
+
+Findings:
+
+- At +3 minutes the stock game shows no mushroom cloud and no smoke column at all: the stock cloud has
+  faded by then. The ground already looks the same as before, apart from the cleared trees. With the mod
+  the cloud is still there (fading), a smoke column rises from ground zero, and the fire lines burn with
+  dark smoke over a black burn with flattened trunks.
+- Problems found and fixed during the test: small separate smoke puffs ("popcorn", a size-semantics
+  mistake), a row of light puffs left by the late dust ring, flat grey sheets on the ground (the stock
+  base cloud with a stretched lifetime, and a hard-edged stem material), and flame emission that grew
+  darker with every blast (a shared cached material).
+- Look questions left for review: from the near camera the condensation ring reads as a band of puffs;
+  at 3 minutes the fire smoke is heavy and dark and hides much of the burn and trunks from the top
+  camera.
+
+#### Frame time
+
+Measured with the test plugin's per-frame log (`Time.unscaledDeltaTime`), frame cap off, 1080p, RTX
+5090, from the wide camera and from the near camera inside the burn. Mean / 95th percentile in ms; time
+from the detonation frame. "Blast frame" is the detonation frame and the frame after it.
+
+| Run | Before | 0-10 s | 10-60 s | 60-200 s | Blast frame |
+| --- | --- | --- | --- | --- | --- |
+| Stock, wide | 3.72 / 5.14 | 3.78 / 5.16 | 3.97 / 5.84 | 4.57 / 7.42 | 29.9, 13.3 |
+| Mod, wide | 3.68 / 5.07 | 3.85 / 5.15 | 3.75 / 5.04 | 3.98 / 5.54 | 52.2, 18.7 |
+| Stock, near | 3.65 / 4.96 | 3.75 / 5.06 | 3.71 / 5.05 | 4.03 / 5.78 | 32.8, 11.7 |
+| Mod, near | 3.64 / 5.00 | 3.83 / 5.14 | 3.91 / 5.59 | 4.10 / 6.02 | 58.0, 19.0 |
+
+- Away from the blast frame the mod is within run-to-run noise of the stock game (the stock wide run
+  was slower than the mod run after 60 s).
+- The blast frame costs about 20 to 25 ms more than stock. The plugin's own work on that frame is 12 ms
+  (`Blast frame work`: the stock-cloud changes, the burn decal, the extra tree clearing, the flash light and the first particle systems; not broken down further).
+  The remaining systems are built one per frame afterwards, and the effect materials are cloned once at
+  session start. An earlier build without that was 59 ms.
+- The PC was shared with other jobs. Three bursts of 30 to 70 ms frames in the mod runs (wide 53-58 s,
+  near 69-88 s and 158-167 s) matched, to the second, a Blender render and a decompile job started by
+  other programs; those windows are left out of the table. The stock runs had no such bursts. A run
+  on an idle PC would make this cleaner.
+- Not measured: slower GPUs, larger yields, several blasts, standing inside the fire smoke, VR.
+
+### 2026-10-12, first in-game test of 0.1.0 (Linux, Proton, Nuclear Option 0.34.1, build `cb745d6c44f1`)
 
 Method: a real recorded match (Confrontation, with a 1.5 kt GPO-N strike over a forested valley) was
 played back twice in a separate, headless copy of the game with Nuclear Replay 0.5.0. Run 1 had no
@@ -66,22 +211,31 @@ Not tested yet: Windows, a live mission, a multiplayer client, TerrainLab maps, 
 session, and frame time. The headless test ran at its 60 fps cap when the shots were taken, but
 frame time around the blast was not measured.
 
-## Performance estimate (not measured)
+## Performance notes
 
-- A 10 kt blast: blast radius about 2,800 m, tree clear radius about 1,400 m, about 6 km². At Ironjaw density (about 1,000 clumps per km²) that is about 6,000 clumps, 42,000 trunks and 420k triangles in about 40 cell meshes, built once on the main thread. `MaxCharredClumps` caps the total at 40,000 clumps.
+- See the 0.2.0 frame-time table above. Particle counts scale with `ParticleBudget`; `MaxActiveBlasts`
+  stops the particle effects of the oldest blasts when there are too many. The burn and trunks stay.
+- Trunks for a 10 kt blast: blast radius about 2,800 m, tree clear radius about 2,100 m with the extra
+  clearing. At dense forest that can be tens of thousands of trunks, built one 512 m cell per frame;
+  `MaxTrunksPerBlast` caps it. Not measured.
 - One 7 MB GPU readback per blast per tree renderer.
 - One large decal. URP decal cost scales with screen coverage.
 
 ## Open questions
 
-- Answered on 2026-10-12: the `clearShader` edits positions in place (`0 changed elsewhere` on the first blast), so the diff finds the right trees. Several blasts in one session are still untested.
-- The look of the stock scorch material stretched to kilometres. On 2026-10-12 it read as a broad, soft dark burn on a stock map; an original decal texture could add more detail.
-- Answered on 2026-10-12: URP Lit is in the build. No fallback was logged and the trunks rendered.
-- Which URP decal technique is active. The decal covered the valley and ridges of the test site; very steep relief is untested.
-
-## Explosion visuals (next step, not started)
-
-The mushroom cloud, shockwave and audio are prefabs on each missile's serialized `Warhead` fields, all local. Better explosion visuals need original particle assets: a lingering stem and cloud, a ground dust ring, ground fires and smoke over the scorch. Those need a Unity batch-mode bundle. The Unity lock (`terrainlab-unity.lock`) is shared with the maps work, so this waits until after the V9/Escalation release.
+- Several blasts in one session: untested with 0.2.0 (the fires, trunks and burn are per blast;
+  `MaxActiveBlasts` caps the particles).
+- 20 kt and 250 kt yields: the effects scale with the blast radius, but only 1.5 kt was watched.
+- Night: the flash light and the emissive flames were only seen in daylight.
+- VR: the screen flash and camera shake switch off when an XR device is active or a VR plugin is
+  loaded. That logic has not been run in VR.
+- Multiplayer clients and Windows: untested. The code path (`RpcDetonate` on every client) is the same
+  as the host's.
+- TerrainLab and other custom maps: untested; the burn decal on very steep relief is untested.
+- Persistence: the burn and trunks stay until the map unloads by design; the fires end after
+  `FireMinutes`. Nothing was watched past about 3.5 minutes.
+- The stock scorch material stretched to kilometres reads as a soft dark burn; an original decal
+  texture could add more detail.
 
 ## Build
 
