@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/media/cover.jpg" alt="Burnt hills with fallen black tree trunks under a blue sky, with the title Nuke Aftermath" width="100%">
+  <img src="docs/media/cover.jpg" alt="A huge nuclear fireball over green hills, with a ring of vapour and a wall of dust racing out along the ground, and the title Nuke Aftermath" width="100%">
 </p>
 
 <p align="center">
