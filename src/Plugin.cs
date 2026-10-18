@@ -28,7 +28,7 @@ namespace Talamander.NukeAftermath
     {
         public const string Guid = "talamander.no.nukeaftermath";
         public const string Name = "Nuke Aftermath";
-        public const string Version = "0.2.0";
+        public const string Version = "0.2.1";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;
