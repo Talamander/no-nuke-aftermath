@@ -20,7 +20,7 @@
 Nuke Aftermath is a free mod for [Nuclear Option](https://store.steampowered.com/app/2168680/). It is
 fan-made and not affiliated with Shockfront Studios.
 
-**Status: test build 0.2.0.** Made for Nuclear Option 0.34.2. Tested on Linux only, in an offline
+**Status: test build 0.2.1.** Made for Nuclear Option 0.34.2. Tested on Linux only, in an offline
 Escalation mission on a stock map, with a 1.5 kt bomb (see [Before and after](#before-and-after)). Not
 tested yet on Windows, in VR, in multiplayer, at night or with the bigger 20 kt and 250 kt warheads.
 Please report what you see.
@@ -110,7 +110,7 @@ You need Nuclear Option from Steam.
 4. Start the game and play a mission with a nuclear weapon.
 
 To check that it loaded, open `BepInEx/LogOutput.log` in your Nuclear Option folder. It should have the
-line `Nuke Aftermath 0.2.0 loaded.`
+line `Nuke Aftermath 0.2.1 loaded.`
 
 If you already use other BepInEx mods, they keep working. Nuke Aftermath only adds its own folder.
 
