@@ -36,12 +36,33 @@ namespace Talamander.NukeAftermath
             if (swapped < 2) Plugin.Log.LogWarning($"Burn: only {swapped} of 2 crater textures found to replace; the burn may look like a stretched crater.");
             projector.material = mat;
             // Depth covers the relief inside the burn: hills well above or below ground zero still get paint.
-            projector.size = new Vector3(radius * 2f, radius * 2f, Mathf.Max(500f, radius * 0.7f));
+            // On mountain maps (Ironjaw Sound fjords) the relief is far taller than 0.7 r, so measure it.
+            float relief = Relief(localGroundZero, radius);
+            float depth = Mathf.Max(500f, radius * 0.7f, 2f * (relief + 100f));
+            projector.size = new Vector3(radius * 2f, radius * 2f, depth);
             projector.pivot = Vector3.zero;
             projector.drawDistance = drawDistance;
             projector.fadeFactor = 1f;
-            Plugin.Log.LogInfo($"Burn: radius {radius:F0} m.");
+            Plugin.Log.LogInfo($"Burn: radius {radius:F0} m, relief {relief:F0} m, depth {depth:F0} m.");
             return go;
+        }
+
+        // Largest height difference between ground zero and the ground inside the burn, from a ring of raycasts.
+        static float Relief(Vector3 gz, float radius)
+        {
+            float max = 0f;
+            for (int ring = 1; ring <= 4; ring++)
+            {
+                float r = radius * ring / 4f;
+                for (int i = 0; i < 16; i++)
+                {
+                    float a = (i + ring * 0.5f) * Mathf.PI / 8f;
+                    var top = gz + new Vector3(Mathf.Cos(a) * r, 6000f, Mathf.Sin(a) * r);
+                    if (Physics.Raycast(top, Vector3.down, out var hit, 12000f, PhysicsLayers.StaticsMask))
+                        max = Mathf.Max(max, Mathf.Abs(hit.point.y - gz.y));
+                }
+            }
+            return Mathf.Min(max, 4000f);
         }
 
         static Texture2D FlatNormal()
