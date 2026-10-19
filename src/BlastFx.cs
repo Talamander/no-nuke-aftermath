@@ -77,12 +77,12 @@ namespace Talamander.NukeAftermath
             if (p.CameraShake.Value && !p.InVR) shakeArmed = true;
         }
 
-        internal void StartFires(List<Vector3> clearedClumps)
+        internal void StartFires(List<Vector3> clearedClumps, PavedAreas paved)
         {
             if (!groundHit) return;
             if (!p.GroundFires.Value && !p.SmokeColumn.Value && !p.Embers.Value) return;
             if (fires != null) return;
-            fires = new GroundFires(transform, p, groundZero, blastRadius, clearRadius, budget, clearedClumps, time);
+            fires = new GroundFires(transform, p, groundZero, blastRadius, clearRadius, budget, clearedClumps, paved, time);
         }
 
         // ---- flash ----

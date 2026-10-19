@@ -28,7 +28,7 @@ namespace Talamander.NukeAftermath
         internal bool Done { get; private set; }
 
         internal GroundFires(Transform parent, Plugin plugin, Vector3 groundZero, float blastRadius, float clearRadius, float budget,
-            List<Vector3> clearedClumps, float now)
+            List<Vector3> clearedClumps, PavedAreas paved, float now)
         {
             p = plugin;
             this.groundZero = groundZero;
@@ -39,7 +39,7 @@ namespace Talamander.NukeAftermath
 
             if (p.GroundFires.Value && p.MaxFires.Value > 0)
             {
-                PlaceFires(clearedClumps, blastRadius);
+                PlaceFires(clearedClumps, blastRadius, paved);
                 var flameMat = Fx.StockMaterial("fire_small1", true, 0.4f); // stock flames dimmed, they glowed neon
                 flames = Fx.NewSystem("NukeAftermath_Flames", parent, Vector3.zero, flameMat, Count(1800));
                 SetupFlames(flames);
@@ -63,7 +63,7 @@ namespace Talamander.NukeAftermath
 
         int Count(int n) => Mathf.Max(1, Mathf.RoundToInt(n * budget));
 
-        void PlaceFires(List<Vector3> clumps, float blastRadius)
+        void PlaceFires(List<Vector3> clumps, float blastRadius, PavedAreas paved)
         {
             int max = p.MaxFires.Value;
             var rng = new System.Random(Mathf.RoundToInt(groundZero.x * 7f + groundZero.z * 13f));
@@ -97,6 +97,8 @@ namespace Talamander.NukeAftermath
                 g.y = Fx.GroundY(local, groundZero.y + Datum.origin.position.y) - Datum.origin.position.y;
                 chosen.Add(g);
             }
+            // Fire lines are about 90 m long and their smoke hangs low: keep them well off runways and taxiways.
+            if (paved != null && paved.Any) chosen.RemoveAll(c => paved.Distance(c) < 70f);
             foreach (var c in chosen)
             {
                 var away = new Vector3(c.x - groundZero.x, 0f, c.z - groundZero.z);

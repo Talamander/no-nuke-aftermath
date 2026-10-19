@@ -83,6 +83,17 @@ fixed an early "popcorn" look of small separate puffs.
    scorched bark) on URP Lit. One mesh per 512 m cell, built one cell per frame, no colliders, seeded per
    tree so every client draws the same trunks.
 4. Session reset on `DetailRenderer.Start` (new map or mission).
+5. **Runways and taxiways (0.2.2, `PavedAreas.cs`)**: a player reported that after a strike the runways
+   and taxiways were black, so the pavement edge could not be seen and aircraft taxied into the grass.
+   On the blast frame the mod collects every static runway (`Airbase.runways`: `Start`, `End`,
+   `GetWidth()`) and taxiway (`Airbase.GetTaxiNetwork().roads`, polylines without a width, drawn
+   30 m wide) of every registered airbase (`FactionRegistry.airbaseLookup`) within reach of the
+   blast. Runways with a `Rigidbody` (carriers) are skipped. A worker thread builds a copy of the burn
+   texture with the alpha on those strips cut to `PavedBurn` (default 0.3) and a 12 m soft edge, in the
+   decal's own texture axes (projector right = u, up = v); it is swapped onto the burn material a few
+   frames later (about 0.1 s, under the fireball) with a 3 ms upload on the main thread. Burns with no
+   pavement inside keep the shared texture. Fire lines are not placed within 70 m of a strip and
+   trunks not within 26 m.
 
 ### Plugin lifetime fix
 
@@ -97,6 +108,31 @@ unless it is already `DontSave`.
 - Late joiners would need the host to remember and send past detonations. That needs an optional host-side companion plus a client message, and every client would have to install it. Not built.
 
 ## Test log
+
+### 2026-10-19, 0.2.2 runway test (Linux, Proton, Nuclear Option 0.34.2, same build as the main install)
+
+Isolated copy, offline Escalation host on Heartland, only Nuke Aftermath and a test-only plugin loaded.
+The test plugin picked the longest static runway (`airbase_boscali_north` Runway 11, 2,416 m by 60 m),
+dropped the 1.5 kt GPO-N 400 m beside its middle and took stills at +45 s and +100 s from a top camera
+(950 m up), a near camera and a pilot's eye on the runway. Three runs: `PavedBurn` 1 (the 0.2.1 look),
+0.2 with a 25 m edge, and 0.3 with a 12 m edge (shipped default).
+
+```
+[Info   :Nuke Aftermath] Paved strips near the blast: 1 runways, 12 taxiways.
+[Info   :Nuke Aftermath] Burn: radius 1041 m, relief 27 m, depth 729 m.
+[Info   :Nuke Aftermath] Blast frame work: 15.5 ms.
+[Info   :Nuke Aftermath] Burn: 1 runways and 12 taxiways kept at 30 % burn (ready after 90 ms, upload 4.8 ms on the main thread).
+```
+
+- `PavedBurn` 1 reproduces the report: from the runway the pavement is as black as the grass and its
+  edge cannot be seen.
+- 0.3: the runway and taxiways keep their grey with light soot, the grass right up to their edges stays
+  black, so the edge is sharp. The mask lines up with the pavement in all views (texture axes confirmed).
+- A first version built the mask on the blast frame and cost 56 ms there; the worker thread brought the
+  blast frame back to 15 to 19 ms (0.2.1: 14.5 ms in the same run).
+- The burn is not drawn from cameras about 1.3 km or more from the burn centre in this test (no burn at
+  all in the first set of far shots, with or without the change). Not investigated; likely the URP
+  decal feature's own draw distance.
 
 ### 2026-10-12, 0.2.0 live A/B test (Linux, Proton, Nuclear Option 0.34.1, build `cb745d6c44f1`)
 

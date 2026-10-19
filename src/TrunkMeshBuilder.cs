@@ -23,7 +23,7 @@ namespace Talamander.NukeAftermath
         static Material material;
 
         public static IEnumerable<GameObject> Build(List<Vector3> clumps, Vector3 groundZero, float clearRadius, int trunksPerClump,
-            float clumpRadius, float flattenFraction, Material material)
+            float clumpRadius, float flattenFraction, Material material, PavedAreas paved = null)
         {
             var cells = new Dictionary<(int, int), List<Vector3>>();
             foreach (var p in clumps)
@@ -53,6 +53,8 @@ namespace Talamander.NukeAftermath
                         float ang = (float)rng.NextDouble() * Mathf.PI * 2f;
                         float rad = Mathf.Sqrt((float)rng.NextDouble()) * clumpRadius;
                         var g = p + new Vector3(Mathf.Cos(ang) * rad, 0f, Mathf.Sin(ang) * rad);
+                        // A blown-down trunk is up to 26 m long: none within that of a runway or taxiway.
+                        if (paved != null && paved.Any && paved.Distance(g) < 26f) continue;
                         g.y = Ground(g, p.y, origin0);
                         var basePos = g - origin;
                         float height = Mathf.Lerp(9f, 26f, (float)rng.NextDouble());

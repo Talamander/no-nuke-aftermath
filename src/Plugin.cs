@@ -28,7 +28,7 @@ namespace Talamander.NukeAftermath
     {
         public const string Guid = "talamander.no.nukeaftermath";
         public const string Name = "Nuke Aftermath";
-        public const string Version = "0.2.1";
+        public const string Version = "0.2.2";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;
@@ -53,6 +53,7 @@ namespace Talamander.NukeAftermath
         internal ConfigEntry<bool> Burn;
         internal ConfigEntry<float> BurnRadiusFactor;
         internal ConfigEntry<float> BurnDrawDistance;
+        internal ConfigEntry<float> PavedBurn;
         internal ConfigEntry<bool> ExtraTreeClear;
         internal ConfigEntry<float> TreeClearFactor;
         internal ConfigEntry<bool> CharredTrees;
@@ -117,6 +118,9 @@ namespace Talamander.NukeAftermath
             Burn = Config.Bind("Aftermath", "Burn", true, "Leave a large burn on the ground: black core, charred ring, feathered edge.");
             BurnRadiusFactor = Config.Bind("Aftermath", "BurnRadiusFactor", 0.7f, new ConfigDescription("Burn radius as a fraction of the game's blast radius (13 * yieldKg^(1/3) m).", new AcceptableValueRange<float>(0.2f, 1.5f)));
             BurnDrawDistance = Config.Bind("Aftermath", "BurnDrawDistance", 30000f, "Burn draw distance in metres.");
+            PavedBurn = Config.Bind("Aftermath", "PavedBurn", 0.3f, new ConfigDescription(
+                "How dark the burn gets on runways and taxiways, as a fraction of the full burn. 0 leaves them clean, 1 burns them like the ground around them. Fires and charred trunks are never put on them.",
+                new AcceptableValueRange<float>(0f, 1f)));
             ExtraTreeClear = Config.Bind("Aftermath", "ExtraTreeClear", true, "Clear trees further out than the stock blast does (visual only).");
             TreeClearFactor = Config.Bind("Aftermath", "TreeClearFactor", 0.75f, new ConfigDescription("Tree clearing radius as a fraction of the blast radius. Stock is 0.5.", new AcceptableValueRange<float>(0.5f, 1.2f)));
             CharredTrees = Config.Bind("Aftermath", "CharredTrees", true, "Draw charred trunks where the blast removed trees.");
@@ -246,12 +250,16 @@ namespace Talamander.NukeAftermath
             activeBlasts.Add(root);
             TrimBlasts();
 
-            if (Burn.Value && groundHit) persistent.Add(BurnDecal.Spawn(groundZero, blastRadius * BurnRadiusFactor.Value, BurnDrawDistance.Value));
+            // Runways and taxiways the burn, fires or trunks could reach.
+            var paved = groundHit ? PavedAreas.Near(global.AsVector3(), blastRadius * Mathf.Max(BurnRadiusFactor.Value, TreeClearFactor.Value, 0.6f)) : null;
+            if (paved != null && paved.Any) Log.LogInfo($"Paved strips near the blast: {paved.RunwayCount} runways, {paved.TaxiwayCount} taxiways.");
+
+            if (Burn.Value && groundHit) persistent.Add(BurnDecal.Spawn(groundZero, blastRadius * BurnRadiusFactor.Value, BurnDrawDistance.Value, paved, PavedBurn.Value));
             else if (Burn.Value) Log.LogInfo("Airburst too high for a ground burn.");
 
             if (groundHit && (CharredTrees.Value || GroundFires.Value))
-                StartCoroutine(AfterTreeClear(global, clearRadius, blast));
-            else if (groundHit) blast.StartFires(null);
+                StartCoroutine(AfterTreeClear(global, clearRadius, blast, paved));
+            else if (groundHit) blast.StartFires(null, paved);
             Log.LogInfo($"Blast frame work: {sw.Elapsed.TotalMilliseconds:F1} ms.");
         }
 
@@ -265,7 +273,7 @@ namespace Talamander.NukeAftermath
             }
         }
 
-        IEnumerator AfterTreeClear(GlobalPosition center, float clearRadius, BlastFx blast)
+        IEnumerator AfterTreeClear(GlobalPosition center, float clearRadius, BlastFx blast, PavedAreas paved)
         {
             // Shockwave.Start queues the stock blast on the next frame; the DetailRenderer clears trees in its
             // LateUpdate after that. Give it a few frames, then read back what the GPU clear left.
@@ -288,12 +296,12 @@ namespace Talamander.NukeAftermath
                     CollectRemoved(ri, tr.PositionData.GetData<Vector3>(), request.GetData<Vector3>(), center, clearRadius, removed);
                 }
             }
-            if (blast != null && GroundFires.Value) blast.StartFires(removed);
+            if (blast != null && GroundFires.Value) blast.StartFires(removed, paved);
             if (!CharredTrees.Value || removed.Count == 0) yield break;
 
             int perClump = Mathf.Clamp(Mathf.Min(TrunksPerClump.Value, MaxTrunksPerBlast.Value / Mathf.Max(1, removed.Count)), 1, 40);
             var material = TrunkMeshBuilder.Material();
-            foreach (var go in TrunkMeshBuilder.Build(removed, center.AsVector3(), clearRadius, perClump, ClumpRadius.Value, FlattenFraction.Value, material))
+            foreach (var go in TrunkMeshBuilder.Build(removed, center.AsVector3(), clearRadius, perClump, ClumpRadius.Value, FlattenFraction.Value, material, paved))
             {
                 go.transform.SetParent(Datum.origin, false);
                 persistent.Add(go);

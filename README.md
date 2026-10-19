@@ -20,7 +20,7 @@
 Nuke Aftermath is a free mod for [Nuclear Option](https://store.steampowered.com/app/2168680/). It is
 fan-made and not affiliated with Shockfront Studios.
 
-**Status: test build 0.2.1.** Made for Nuclear Option 0.34.2. Tested on Linux only, in an offline
+**Status: test build 0.2.2.** Made for Nuclear Option 0.34.2. Tested on Linux only, in an offline
 Escalation mission on a stock map, with a 1.5 kt bomb (see [Before and after](#before-and-after)). Not
 tested yet on Windows, in VR, in multiplayer, at night or with the bigger 20 kt and 250 kt warheads.
 Please report what you see.
@@ -48,6 +48,8 @@ Please report what you see.
   with its own column of dark smoke drifting with the wind. A tall smoke column rises from ground zero,
   embers drift over the burnt ground, and what is left of the mushroom cloud drifts away slowly.
 - **It stays.** The burn and the trunks stay until you leave the map.
+- **Runways stay usable.** Runways and taxiways in the burn only get a light scorch, so you can still
+  see where the pavement ends. No fires or trunks are put on them.
 
 **Nothing to set up.** There are no keys. It reacts to every nuclear warhead by itself.
 **Only for you.** It changes what your game draws, nothing else. Other players do not need it, and it
@@ -110,7 +112,7 @@ You need Nuclear Option from Steam.
 4. Start the game and play a mission with a nuclear weapon.
 
 To check that it loaded, open `BepInEx/LogOutput.log` in your Nuclear Option folder. It should have the
-line `Nuke Aftermath 0.2.1 loaded.`
+line `Nuke Aftermath 0.2.2 loaded.`
 
 If you already use other BepInEx mods, they keep working. Nuke Aftermath only adds its own folder.
 
@@ -160,8 +162,9 @@ Yes, in `BepInEx/config/talamander.no.nukeaftermath.cfg` (it appears after the f
 effect has its own on/off switch: the bigger cloud, the flash, the screen flash, the dust ring, the
 condensation ring, the lingering cloud, the camera shake, the burn, the extra tree clearing, the
 trunks, the fires, the smoke column and the embers. You can also change the cloud size and how long it
-lasts, the flash brightness, the shake strength, the burn size, how many trunks and fires there are,
-and how long the fires burn. Under `Performance`, `ParticleBudget` scales every particle effect down
+lasts, the flash brightness, the shake strength, the burn size, how dark the burn gets on runways and
+taxiways (`PavedBurn`: 0 leaves them clean, 1 burns them like the ground around them), how many trunks
+and fires there are, and how long the fires burn. Under `Performance`, `ParticleBudget` scales every particle effect down
 (0.5 = half) and `MaxActiveBlasts` limits how many blasts keep their particle effects at the same time.
 
 **Something does not work.**
